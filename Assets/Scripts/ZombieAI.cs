@@ -23,12 +23,17 @@ public class ZombieAI : MonoBehaviour
     [SerializeField] private float StopAttackDistance = 5f;
     [SerializeField] private float attackCooldown = 1.5f;
 
+    // Zombies will exhaust themselves to death after several attacks
+    [Header("Zombie Attack Settings")]
+    [SerializeField] private int numberOfZombieAttacksUntilDeath = 5;
+
     public enum ZombieState
     {
         Wait,
         Wander,
         Chase,
-        Attack
+        Attack,
+        Death,
     }
 
     private ZombieState zombieState = ZombieState.Wait;
@@ -83,6 +88,9 @@ public class ZombieAI : MonoBehaviour
                 break;
             case ZombieState.Attack:
                 ZombieAttack();
+                break;
+            case ZombieState.Death:
+                ZombieDeath();
                 break;
             default:
                 break;
@@ -186,10 +194,13 @@ public class ZombieAI : MonoBehaviour
 
     private void ZombieAttack()
     {
-        if ( canAttack)
+        if (canAttack)
         {
             //attack code
-            Debug.Log("Attacked the Player!");
+            Debug.Log($"Attacked the Player!, {numberOfZombieAttacksUntilDeath} attacks until zombie dies.");
+            numberOfZombieAttacksUntilDeath--;
+            if(numberOfZombieAttacksUntilDeath <= 0)
+                zombieState = ZombieState.Death;
             StartCoroutine(AttackCooldown());
         } else
         {
@@ -205,6 +216,11 @@ public class ZombieAI : MonoBehaviour
         canAttack = false;
         yield return new WaitForSeconds(attackCooldown);
         canAttack = true;
+    }
+    
+    private void ZombieDeath()
+    {
+        Destroy(gameObject);
     }
 }
 
